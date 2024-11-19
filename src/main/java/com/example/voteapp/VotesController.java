@@ -38,7 +38,7 @@ public class VotesController {
 
         // Obsługa przycisku "Powrót"
         backButton.setOnAction(event -> {
-            ViewUtils.switchView((Stage) backButton.getScene().getWindow(), "start-view.fxml");
+            ViewUtils.switchView((Stage) backButton.getScene().getWindow(), "user-view.fxml");
         });
     }
 }

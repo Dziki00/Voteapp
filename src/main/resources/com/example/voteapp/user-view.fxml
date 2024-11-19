@@ -5,8 +5,22 @@
 <?import javafx.scene.control.Button?>
 
 <VBox spacing="20" alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-      style="-fx-padding: 20; -fx-background-color: #FFFFFF;">
-    <Label text="Panel Użytkownika" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-    <Button text="Oddaj głos" style="-fx-font-size: 16px;"/>
-    <Button text="Wyloguj" fx:id="logoutButton" style="-fx-font-size: 16px;"/>
+      style="-fx-padding: 20; -fx-background-color: #E8F5E9;" fx:controller="com.example.voteapp.UserController">
+
+    <!-- Biały pasek na środku -->
+    <VBox spacing="20" alignment="CENTER"
+          style="-fx-padding: 20; -fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 0); -fx-max-width: 400;">
+
+        <!-- Nagłówek -->
+        <Label text="Panel Użytkownika"
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+
+        <!-- Przyciski -->
+        <Button text="Oddaj głos" fx:id="voteButton"
+                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #1E88E5; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
+        <Button text="Sprawdź oddane głosy" fx:id="checkVotesButton"
+                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #1E88E5; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
+        <Button text="Wyloguj" fx:id="logoutButton"
+                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #D32F2F; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
+    </VBox>
 </VBox>

@@ -29,7 +29,4 @@
             style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #FF5722; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
     <Button text="Zarejestruj obywatela" fx:id="registerButton"
             style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #43A047; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
-    <Button text="Sprawdź oddane głosy" fx:id="checkVotesButton"
-            style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #1E88E5; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
-
 </VBox>

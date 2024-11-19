@@ -20,13 +20,13 @@ public class AdminController {
         // Obsługa przycisku zarządzania ankietami
         managePollsButton.setOnAction(event -> {
             System.out.println("Przejście do zarządzania ankietami");
-            // Dodaj logikę przejścia do widoku zarządzania ankietami
+            ViewUtils.switchView((Stage) managePollsButton.getScene().getWindow(), "manage-polls-view.fxml");
         });
 
         // Obsługa przycisku zarządzania użytkownikami
         manageUsersButton.setOnAction(event -> {
             System.out.println("Przejście do zarządzania użytkownikami");
-            // Dodaj logikę przejścia do widoku zarządzania użytkownikami
+            ViewUtils.switchView((Stage) manageUsersButton.getScene().getWindow(), "manage-users-view.fxml");
         });
 
         // Obsługa przycisku wylogowania

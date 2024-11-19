@@ -23,9 +23,6 @@ public class StartController {
     private Button registerButton;
 
     @FXML
-    private Button checkVotesButton;
-
-    @FXML
     private ImageView logoImage;
 
     private boolean isValidUser(String pesel, String password) {
@@ -41,9 +38,6 @@ public class StartController {
             ViewUtils.switchView((Stage) registerButton.getScene().getWindow(), "register-view.fxml");
         });
 
-        checkVotesButton.setOnAction(event -> {
-            ViewUtils.switchView((Stage) checkVotesButton.getScene().getWindow(), "votes-view.fxml");
-        });
 
 
         loginButton.setOnAction(event -> {

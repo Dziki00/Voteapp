@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.voteapp.ManagePollsController"
+            style="-fx-background-color: #E8F5E9; -fx-font-family: 'Arial';">
+
+    <VBox spacing="20" alignment="CENTER"
+          layoutX="300" layoutY="20"
+          prefHeight="400.0" prefWidth="600.0"
+          style="-fx-padding: 20; -fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 0);">
+
+        <!-- Nagłówek -->
+        <Label text="Zarządzanie Ankietami" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+
+        <!-- Przykładowe rozwijane kafelki dla ankiet -->
+        <VBox fx:id="pollsContainer" spacing="10" alignment="TOP_CENTER" style="-fx-padding: 10;">
+            <TitledPane text="Ankieta 1" expanded="false">
+                <VBox spacing="5" style="-fx-padding: 10;">
+                    <Button text="Rozpocznij Ankietę" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #43A047; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+                    <Button text="Edytuj" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #FFC107; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+                    <Button text="Wstrzymaj" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #1E88E5; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+                    <Button text="Zakończ" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #D32F2F; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+                    <Button text="Pokaż Wyniki" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #6A1B9A; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+                    <Button text="Usuń Dane" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #B71C1C; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+                </VBox>
+            </TitledPane>
+        </VBox>
+    </VBox>
+
+</AnchorPane>
