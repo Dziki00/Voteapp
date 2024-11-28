@@ -1,5 +1,6 @@
-package com.example.voteapp;
+package com.example.voteapp.controllers;
 
+import com.example.voteapp.utils.ViewUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;

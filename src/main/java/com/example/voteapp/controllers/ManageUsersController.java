@@ -1,5 +1,6 @@
-package com.example.voteapp;
+package com.example.voteapp.controllers;
 
+import com.example.voteapp.utils.ViewUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;

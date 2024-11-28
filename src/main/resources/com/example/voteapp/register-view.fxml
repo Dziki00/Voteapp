@@ -7,10 +7,10 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
+
 
 <VBox spacing="15" alignment="TOP_CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.voteapp.RegisterController"
+      fx:controller="com.example.voteapp.controllers.RegisterController"
       style="-fx-padding: 20; -fx-background-color: #E8F5E9; -fx-font-family: 'Arial';">
 
     <!-- Logo w lewym górnym rogu -->
@@ -32,7 +32,7 @@
                style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5;"/>
 
     <!-- Data urodzenia -->
-    <DatePicker fx:id="birthDatePicker" promptText="Data urodzenia"
+    <TextField fx:id="birthYearDate" promptText="Data urodzenia"
                 style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5; -fx-pref-width: 1200;"/>
 
     <!-- Województwo -->

@@ -1,4 +1,4 @@
-package com.example.voteapp;
+package com.example.voteapp.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

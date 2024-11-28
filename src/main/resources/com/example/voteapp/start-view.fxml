@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="20" alignment="TOP_CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.voteapp.StartController"
+      fx:controller="com.example.voteapp.controllers.LoginController"
       style="-fx-padding: 20; -fx-background-color: #E8F5E9; -fx-font-family: 'Arial';">
 
     <!-- Logo Aplikacji -->
