@@ -2,6 +2,7 @@ package com.example.voteapp.controllers;
 
 import com.example.voteapp.model.Poll;
 import com.example.voteapp.model.PollService;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,7 +15,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class AvailablePollsController {
 
@@ -40,21 +45,76 @@ public class AvailablePollsController {
         }
 
         for (Poll poll : polls) {
-            VBox pollBox = new VBox(10);
-            pollBox.setStyle("-fx-padding: 10; -fx-background-color: #f9f9f9; -fx-border-color: #dcdcdc; -fx-border-radius: 5;");
-
-            Label pollInfo = new Label("Nazwa: " + poll.getName() +
-                    "\nStatus: " + (poll.isActive() ? "Aktywna" : "Zawieszona") +
-                    "\nData rozpoczęcia: " + poll.getStartDate() +
-                    "\nData zakończenia: " + poll.getEndDate());
-            pollInfo.setStyle("-fx-font-size: 14px;");
-
-            Button voteButton = new Button("Zagłosuj");
-            voteButton.setStyle("-fx-background-color: #43A047; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
-            voteButton.setOnAction(e -> openVotePopup(poll));
-
-            pollBox.getChildren().addAll(pollInfo, voteButton);
+            VBox pollBox = createPollBox(poll);
             pollsContainer.getChildren().add(pollBox);
+        }
+    }
+
+    private VBox createPollBox(Poll poll) {
+        VBox pollBox = new VBox(10);
+        pollBox.setStyle("-fx-padding: 10; -fx-background-color: #f9f9f9; -fx-border-color: #dcdcdc; -fx-border-radius: 5;");
+
+        Label pollNameLabel = new Label("Nazwa: " + poll.getName());
+        pollNameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Label pollStatusLabel = new Label("Status: " + (poll.isActive() ? "Aktywna" : "Zawieszona"));
+        pollStatusLabel.setStyle("-fx-font-size: 14px;");
+
+        Label countdownLabel = new Label();
+        countdownLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #FF5722;");
+
+        Button voteButton = new Button("Zagłosuj");
+        voteButton.setStyle("-fx-background-color: #43A047; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
+        voteButton.setDisable(true); // Domyślnie zablokowane, dopóki nie zweryfikujemy stanu ankiety
+        voteButton.setOnAction(e -> openVotePopup(poll));
+
+        // Aktualizuj licznik czasu i zarządzaj dostępnością przycisku
+        updateCountdownLabel(poll, countdownLabel, voteButton);
+
+        pollBox.getChildren().addAll(pollNameLabel, pollStatusLabel, countdownLabel, voteButton);
+        return pollBox;
+    }
+
+    private void updateCountdownLabel(Poll poll, Label countdownLabel, Button voteButton) {
+        Timer timer = new Timer(true);
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    LocalDateTime now = LocalDateTime.now();
+                    if (poll.getStartDate().isAfter(now)) {
+                        // Czas do rozpoczęcia
+                        Duration duration = Duration.between(now, poll.getStartDate());
+                        countdownLabel.setText("Czas do rozpoczęcia: " + formatDuration(duration));
+                        voteButton.setDisable(true);
+                    } else if (poll.getEndDate().isAfter(now)) {
+                        // Czas do zakończenia
+                        Duration duration = Duration.between(now, poll.getEndDate());
+                        countdownLabel.setText("Czas do zakończenia: " + formatDuration(duration));
+                        voteButton.setDisable(!poll.isActive());
+                    } else {
+                        // Po zakończeniu ankiety
+                        countdownLabel.setText("Ankieta zakończona");
+                        voteButton.setDisable(true);
+                    }
+                });
+            }
+        };
+        timer.scheduleAtFixedRate(task, 0, 1000); // Odświeżaj co sekundę
+    }
+
+    private String formatDuration(Duration duration) {
+        long days = duration.toDays();
+        long hours = duration.toHours() % 24;
+        long minutes = duration.toMinutes() % 60;
+        long seconds = duration.getSeconds() % 60;
+
+        if (days > 0) {
+            return String.format("%d dni, %02d godz, %02d min, %02d sek", days, hours, minutes, seconds);
+        } else if (hours > 0) {
+            return String.format("%02d godz, %02d min, %02d sek", hours, minutes, seconds);
+        } else {
+            return String.format("%02d min, %02d sek", minutes, seconds);
         }
     }
 

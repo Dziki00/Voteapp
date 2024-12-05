@@ -103,26 +103,26 @@ public class PollService {
         }
     }
 
-    public boolean saveUserVote(int pollId, int userId, int questionId, String selectedOption) {
-        String insertVoteQuery = "INSERT INTO votes (poll_id, user_id, question_id, selected_option) VALUES (?, ?, ?, ?)";
+    public boolean saveUserVote(int pollId, int userId, int questionId, int selectedOptionId) {
+        String sql = "INSERT INTO votes (poll_id, user_id, question_id, selected_option_id) VALUES (?, ?, ?, ?)";
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement(insertVoteQuery)) {
+            statement.setInt(1, pollId);
+            statement.setInt(2, userId);
+            statement.setInt(3, questionId);
+            statement.setInt(4, selectedOptionId);
 
-            stmt.setInt(1, pollId);
-            stmt.setInt(2, userId);
-            stmt.setInt(3, questionId);
-            stmt.setString(4, selectedOption);
-
-            int rowsInserted = stmt.executeUpdate();
-            return rowsInserted > 0;
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0; // Zwraca true, jeśli zapisano przynajmniej jeden wiersz
 
         } catch (SQLException e) {
-            System.err.println("Błąd podczas zapisywania głosu użytkownika: " + e.getMessage());
-            e.printStackTrace();
-            return false;
+            System.err.println("Błąd podczas zapisu głosu użytkownika: " + e.getMessage());
+            return false; // Zwraca false, jeśli wystąpił błąd
         }
     }
+
+
 
 
     public boolean updatePoll(Poll poll) {
@@ -246,6 +246,25 @@ public class PollService {
                 return options;
             }
         }
+    }
+
+
+    public int getOptionIdByText(int questionId, String optionText) {
+        String sql = "SELECT id FROM options WHERE question_id = ? AND option_text = ?";
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, questionId);
+            statement.setString(2, optionText);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas pobierania ID opcji: " + e.getMessage());
+        }
+        return -1; // Jeśli opcja nie istnieje
     }
 
 

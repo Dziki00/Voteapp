@@ -114,16 +114,30 @@ public class VoteController {
             Question question = entry.getKey();
             String selectedOption = entry.getValue();
 
-            boolean success = pollService.saveUserVote(poll.getId(), userId, question.getId(), selectedOption);
+            // Pobierz identyfikator opcji na podstawie tekstu
+            int selectedOptionId = pollService.getOptionIdByText(question.getId(), selectedOption);
+            if (selectedOptionId == -1) {
+                showAlert(Alert.AlertType.ERROR, "Błąd", "Nieprawidłowa opcja: " + selectedOption);
+                allVotesSaved = false;
+                continue;
+            }
 
+            boolean success = pollService.saveUserVote(poll.getId(), userId, question.getId(), selectedOptionId);
             if (!success) {
                 allVotesSaved = false;
                 showAlert(Alert.AlertType.ERROR, "Błąd", "Wystąpił błąd podczas zapisu głosu dla pytania: " + question.getQuestionText());
             }
         }
 
+        if (allVotesSaved) {
+            showAlert(Alert.AlertType.INFORMATION, "Sukces", "Głosy zostały zapisane pomyślnie.");
+        }
+
         return allVotesSaved;
     }
+
+
+
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
