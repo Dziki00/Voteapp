@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      style="-fx-padding: 20; -fx-background-color: #F4F7FA; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0.5, 0, 0);"
+      fx:controller="com.example.voteapp.controllers.PollDetailsController">
+
+    <!-- Nagłówek -->
+    <Label text="Szczegóły Ankiety"
+           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E88E5;" />
+
+    <!-- Pojemnik na szczegóły ankiety -->
+    <VBox spacing="10" alignment="CENTER_LEFT"
+          style="-fx-padding: 15; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #DDDDDD; -fx-border-width: 1;">
+        <Label fx:id="pollNameLabel" text="Nazwa: [Nazwa Ankiety]"
+               style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+        <Label fx:id="pollStatusLabel" text="Status: [Status]"
+               style="-fx-font-size: 16px; -fx-text-fill: #43A047;" />
+        <HBox spacing="10">
+            <Label text="Data rozpoczęcia:" style="-fx-font-size: 16px;" />
+            <Label fx:id="pollStartDateLabel" text="[Data Startu]" style="-fx-font-size: 16px;" />
+        </HBox>
+        <HBox spacing="10">
+            <Label text="Data zakończenia:" style="-fx-font-size: 16px;" />
+            <Label fx:id="pollEndDateLabel" text="[Data Końca]" style="-fx-font-size: 16px;" />
+        </HBox>
+    </VBox>
+
+    <!-- Przyciski akcji -->
+    <HBox spacing="15" alignment="CENTER">
+        <Button fx:id="suspendButton" text="Zawieś/Aktywuj Ankietę"
+                style="-fx-background-color: #FFB74D; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 16;" />
+        <Button fx:id="resultsButton" text="Wyniki"
+                style="-fx-background-color: #64B5F6; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 16;" />
+        <Button fx:id="editButton" text="Edytuj"
+                style="-fx-background-color: #43A047; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 16;" />
+        <Button fx:id="deleteButton" text="Usuń"
+                style="-fx-background-color: #E53935; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 16;" />
+    </HBox>
+
+    <!-- Przycisk zamknięcia -->
+    <Button text="Zamknij" onAction="#closeWindow"
+            style="-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 16; -fx-background-radius: 10;" />
+</VBox>

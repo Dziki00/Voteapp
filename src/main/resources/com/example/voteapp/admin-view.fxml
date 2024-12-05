@@ -2,27 +2,32 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="20" alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-      style="-fx-padding: 20; -fx-background-color: #E8F5E9; -fx-font-family: 'Arial';" fx:controller="com.example.voteapp.controllers.AdminController">
+<VBox spacing="20" alignment="TOP_CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      style="-fx-padding: 20; -fx-background-color: white; -fx-font-family: 'Arial';" fx:controller="com.example.voteapp.controllers.AdminController">
 
-    <!-- Biały pasek na środku -->
-    <VBox spacing="20" alignment="CENTER"
-          style="-fx-padding: 20; -fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 0); -fx-max-width: 400;">
+    <!-- Przyciski nawigacji u góry -->
+    <VBox spacing="10" alignment="CENTER"
+          style="-fx-padding: 20; -fx-background-color: #E8F5E9; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 0); -fx-pref-width: 600;">
 
-        <!-- Nagłówek panelu administratora -->
-        <Label text="Panel Administratora" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+        <!-- Nagłówek i przycisk wylogowania -->
+        <HBox spacing="20" alignment="CENTER">
+            <Label text="Panel Administratora" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+        </HBox>
 
-        <!-- Przyciski zarządzania -->
-        <Button text="Zarządzaj Ankietami" fx:id="managePollsButton"
-                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #43A047; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
-        <Button text="Zarządzaj Użytkownikami" fx:id="manageUsersButton"
-                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #1E88E5; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
-
-        <!-- Przyciski nawigacji -->
-        <Button text="Wyloguj" fx:id="logoutButton"
-                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #FF5722; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-pref-width: 250;"/>
+        <!-- Przycisk Utwórz Ankietę -->
+        <Button text="Utwórz Ankietę" fx:id="createPollButton"
+                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #43A047; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;"/>
     </VBox>
+
+    <!-- Obszar na ankiety -->
+    <VBox fx:id="pollsContainer" spacing="20" alignment="CENTER"
+          style="-fx-padding: 20; -fx-background-color: #E8F5E9; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 0); -fx-pref-width: 600;">
+        <Label text="Lista Ankiet" style="-fx-font-size: 20px; -fx-text-fill: #333333;"/>
+    </VBox>
+    <Button text="Wyloguj" fx:id="logoutButton"
+            style="-fx-font-size: 14px; -fx-padding: 5 15; -fx-background-color: #E53935; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;"/>
 
 </VBox>

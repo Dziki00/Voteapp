@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #F5F5F5; -fx-font-family: 'Arial';" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.voteapp.controllers.CreatePollController">
+
+    <!-- Nagłówek -->
+    <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;" text="Tworzenie Ankiety" />
+
+    <!-- Główne informacje o ankiecie -->
+    <VBox spacing="15" style="-fx-padding: 10; -fx-background-color: #E8F5E9; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0); -fx-pref-width: 600;">
+        <TextField fx:id="pollNameField" promptText="Nazwa Ankiety" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5;" />
+        <HBox spacing="10">
+            <DatePicker fx:id="startDateField" promptText="Data Rozpoczęcia" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5; -fx-pref-width: 300;" />
+            <TextField fx:id="startTimeField" promptText="Godzina (HH:MM)" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5; -fx-pref-width: 300;" />
+        </HBox>
+        <HBox spacing="10">
+            <DatePicker fx:id="endDateField" promptText="Data Zakończenia" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5; -fx-pref-width: 300;" />
+            <TextField fx:id="endTimeField" promptText="Godzina (HH:MM)" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5; -fx-pref-width: 300;" />
+        </HBox>
+        <TextField fx:id="voivodeshipField" promptText="Województwo (opcjonalne)" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5;" />
+        <TextField fx:id="municipalityField" promptText="Gmina (opcjonalne)" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 5;" />
+    </VBox>
+
+    <!-- Sekcja pytań i opcji -->
+    <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Dodaj Pytania i Opcje" />
+    <ScrollPane style="-fx-pref-height: 600; -fx-pref-width: 600;" fitToWidth="true" fitToHeight="true">
+        <VBox alignment="CENTER" style="-fx-padding: 20; -fx-background-color: #ffffff;">
+            <VBox fx:id="questionsContainer" spacing="30" alignment="CENTER"
+                  style="-fx-padding: 20; -fx-pref-height: 200; -fx-pref-width: 1900; -fx-background-color: #E8F5E9; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);"/>
+        </VBox>
+    </ScrollPane>
+
+    <Button fx:id="addQuestionButton" style="-fx-font-size: 14px; -fx-padding: 10 20; -fx-background-color: #1E88E5; -fx-text-fill: white; -fx-border-radius: 5;" text="Dodaj Pytanie" />
+
+    <!-- Przycisk zapisu -->
+    <Button fx:id="createPollButton" style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-background-color: #43A047; -fx-text-fill: white; -fx-border-radius: 5;" text="Zapisz Ankietę" />
+</VBox>
