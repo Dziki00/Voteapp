@@ -3,6 +3,7 @@ package com.example.voteapp.controllers;
 import com.example.voteapp.model.UserService;
 import com.example.voteapp.utils.ViewUtils;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -31,7 +32,7 @@ public class LoginController {
 
     @FXML
     private void initialize() {
-        // Ustaw logo z ramką
+        // Ustaw logo
         logoImage.setImage(new Image(getClass().getResourceAsStream("/com/example/voteapp/logo.png")));
 
         // Obsługa przycisku rejestracji
@@ -40,25 +41,49 @@ public class LoginController {
         });
 
         // Obsługa przycisku logowania
-        loginButton.setOnAction(event -> {
-            String pesel = peselField.getText();
-            String password = passwordField.getText();
+        loginButton.setOnAction(event -> handleLogin());
+    }
 
-            // Obsługa logowania dla administratora
-            if ("admin".equals(pesel) && "admin123".equals(password)) {
-                System.out.println("Logowanie administratora.");
-                ViewUtils.switchView((Stage) loginButton.getScene().getWindow(), "admin-view.fxml");
-                return;
-            }
+    private void handleLogin() {
+        String pesel = peselField.getText().trim();
+        String password = passwordField.getText().trim();
 
-            // Obsługa logowania dla użytkownika
-            boolean success = userService.loginUser(pesel, password);
-            if (success) {
-                System.out.println("Logowanie użytkownika zakończone sukcesem.");
-                ViewUtils.switchView((Stage) loginButton.getScene().getWindow(), "user-view.fxml");
-            } else {
-                System.out.println("Błędne dane logowania!");
-            }
-        });
+        if (pesel.isEmpty() || password.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Błąd logowania", "PESEL i hasło nie mogą być puste.");
+            return;
+        }
+
+        // Logowanie administratora
+        if ("admin".equals(pesel) && "admin123".equals(password)) {
+            System.out.println("Logowanie administratora.");
+            ViewUtils.switchView((Stage) loginButton.getScene().getWindow(), "admin-view.fxml");
+            return;
+        }
+
+        // Logowanie użytkownika
+        Integer userId = userService.getUserId(pesel, password);
+        if (userId != null) {
+            System.out.println("Logowanie użytkownika zakończone sukcesem. userId: " + userId);
+
+            // Przekazywanie userId do widoku użytkownika
+            ViewUtils.switchViewWithUserId((Stage) loginButton.getScene().getWindow(), "user-view.fxml",
+                    controller -> {
+                        if (controller instanceof UserController) {
+                            ((UserController) controller).setUserId(userId);
+                        }
+                    });
+        } else {
+            System.out.println("Błędne dane logowania!");
+            showAlert(Alert.AlertType.ERROR, "Błąd logowania", "Nieprawidłowy PESEL lub hasło.");
+        }
+    }
+
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

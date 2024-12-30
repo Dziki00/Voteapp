@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 
 public class UserService {
 
+    // Metoda rejestracji użytkownika
     public boolean registerUser(String pesel, String email, String password, String address, String voivodeship, String municipality, String birthDate) {
         // Haszowanie hasła
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -36,7 +37,7 @@ public class UserService {
         }
     }
 
-
+    // Metoda logowania użytkownika
     public boolean loginUser(String pesel, String password) {
         String sql = "SELECT password FROM users WHERE pesel = ?";
 
@@ -64,5 +65,37 @@ public class UserService {
             System.out.println("Błąd podczas logowania użytkownika: " + e.getMessage());
         }
         return false; // W przypadku błędu lub nieudanej weryfikacji
+    }
+
+    // Metoda pobierania ID użytkownika
+    public Integer getUserId(String pesel, String password) {
+        String sql = "SELECT id, password FROM users WHERE pesel = ?";
+
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, pesel);
+
+            ResultSet resultSet = pstmt.executeQuery();
+            if (resultSet.next()) {
+                String storedHashedPassword = resultSet.getString("password");
+
+                // Weryfikacja hasła
+                if (BCrypt.checkpw(password, storedHashedPassword)) {
+                    int userId = resultSet.getInt("id");
+                    System.out.println("Znaleziono użytkownika o ID: " + userId);
+                    return userId;
+                } else {
+                    System.out.println("Nieprawidłowe hasło.");
+                }
+            } else {
+                System.out.println("Nie znaleziono użytkownika o podanym PESEL.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Błąd podczas pobierania ID użytkownika: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null; // Zwraca null, jeśli użytkownik nie istnieje lub hasło jest nieprawidłowe
     }
 }

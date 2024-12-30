@@ -27,10 +27,19 @@ public class AvailablePollsController {
     private VBox pollsContainer;
 
     private final PollService pollService = new PollService();
+    private int userId; // Pole do przechowywania ID użytkownika
+
+    // Metoda do ustawiania userId
+    public void setUserId(int userId) {
+        this.userId = userId;
+        System.out.println("Ustawiono userId w AvailablePollsController: " + userId);
+        loadAvailablePolls();
+    }
 
     @FXML
     private void initialize() {
-        loadAvailablePolls();
+        // Ankiety zostaną załadowane dopiero po ustawieniu userId
+        System.out.println("AvailablePollsController został zainicjalizowany.");
     }
 
     private void loadAvailablePolls() {
@@ -120,30 +129,29 @@ public class AvailablePollsController {
 
     private void openVotePopup(Poll poll) {
         try {
+            // Wczytanie widoku głosowania
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/voteapp/vote-view.fxml"));
             Parent root = loader.load();
 
-            VoteController controller = loader.getController();
+            // Pobieranie kontrolera dla widoku głosowania
+            VoteController voteController = loader.getController();
 
-            // Pobieranie identyfikatora użytkownika
-            int userId = getCurrentUserId();
-            controller.setPoll(poll, userId);
+            // Przekazanie ankiety i userId do kontrolera
+            voteController.setPoll(poll, userId);
 
-            Stage popupStage = new Stage();
-            popupStage.initModality(Modality.APPLICATION_MODAL);
-            popupStage.setTitle("Głosowanie");
-            popupStage.setScene(new Scene(root, 400, 300));
-            popupStage.showAndWait();
+            // Konfiguracja nowego okna dla głosowania
+            Stage voteStage = new Stage();
+            voteStage.initModality(Modality.APPLICATION_MODAL);
+            voteStage.setTitle("Głosowanie");
+            voteStage.setScene(new Scene(root, 600, 400)); // Ustaw rozmiar okna
+            voteStage.showAndWait(); // Oczekuj na zamknięcie okna przed kontynuacją
+
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć okna głosowania.");
         }
     }
 
-    private int getCurrentUserId() {
-        // Implementacja pobierania bieżącego identyfikatora użytkownika (np. z sesji lub innej klasy).
-        return 1; // Placeholder. Zamień na właściwe pobieranie userId.
-    }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
