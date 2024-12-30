@@ -105,13 +105,13 @@ public class AdminController {
             popupStage.initModality(Modality.APPLICATION_MODAL);
             popupStage.setTitle("Szczegóły Ankiety");
             popupStage.setScene(new Scene(root, 600, 400));
+            popupStage.setOnHiding(event -> loadPolls()); // Dodanie odświeżenia po zamknięciu okna edycji
             popupStage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć szczegółów ankiety.");
         }
     }
-
 
     private void deletePoll(Poll poll) {
         boolean success = pollService.deletePoll(poll);
