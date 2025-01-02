@@ -118,7 +118,8 @@ public class PollDetailsController {
     private void disableActionsAfterEnd() {
         suspendButton.setDisable(true);
         editButton.setDisable(true);
-        resultsButton.setDisable(true);
+        deleteButton.setDisable(false); // Usunięcie ankiety zawsze możliwe
+        resultsButton.setDisable(false); // Wyniki zawsze aktywne
     }
 
     private String formatDuration(Duration duration, String prefix) {
@@ -165,20 +166,33 @@ public class PollDetailsController {
     }
 
     private void showPollResults() {
-        showAlert(Alert.AlertType.INFORMATION, "Wyniki ankiety", "Wyświetlanie wyników ankiety w trakcie implementacji.");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/voteapp/poll-results-view.fxml"));
+            Parent root = loader.load();
+
+            PollResultsController controller = loader.getController();
+            controller.setPoll(poll); // Przekazanie obiektu Poll
+
+            Stage stage = new Stage();
+            stage.setTitle("Wyniki Ankiety");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć widoku wyników.");
+        }
     }
+
+
 
     private void openEditPollWindow() {
         try {
-            // Załadowanie widoku z pliku FXML
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/voteapp/edit-poll-view.fxml"));
             Parent root = fxmlLoader.load();
 
-            // Pobranie kontrolera i przekazanie obiektu poll oraz callbacku
             EditPollController editPollController = fxmlLoader.getController();
-            editPollController.setPoll(poll, this::refreshPollDetails); // Przekazanie obiektu poll i funkcji odświeżania
+            editPollController.setPoll(poll, this::refreshPollDetails);
 
-            // Tworzenie nowego okna (Stage)
             Stage stage = new Stage();
             stage.setTitle("Edycja Ankiety");
             stage.setScene(new Scene(root));
@@ -189,8 +203,6 @@ public class PollDetailsController {
             showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć okna edycji ankiety.");
         }
     }
-
-
 
     @FXML
     private void closeWindow() {
@@ -208,7 +220,6 @@ public class PollDetailsController {
             loadPollDetails();
         }
     }
-
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);

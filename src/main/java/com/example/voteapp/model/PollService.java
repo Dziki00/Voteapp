@@ -4,9 +4,7 @@ import com.example.voteapp.utils.DatabaseConnection;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class PollService {
 
@@ -114,16 +112,13 @@ public class PollService {
             statement.setInt(4, selectedOptionId);
 
             int rowsAffected = statement.executeUpdate();
-            return rowsAffected > 0; // Zwraca true, jeśli zapisano przynajmniej jeden wiersz
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             System.err.println("Błąd podczas zapisu głosu użytkownika: " + e.getMessage());
-            return false; // Zwraca false, jeśli wystąpił błąd
+            return false;
         }
     }
-
-
-
 
     public boolean updatePoll(Poll poll) {
         String query = "UPDATE polls SET name = ?, start_date = ?, end_date = ?, voivodeship = ?, municipality = ? WHERE id = ?";
@@ -149,20 +144,39 @@ public class PollService {
     }
 
     public boolean deletePoll(Poll poll) {
-        String query = "DELETE FROM polls WHERE id = ?";
+        String deleteVotesQuery = "DELETE FROM votes WHERE poll_id = ?";
+        String deleteOptionsQuery = "DELETE FROM options WHERE question_id IN (SELECT id FROM questions WHERE poll_id = ?)";
+        String deleteQuestionsQuery = "DELETE FROM questions WHERE poll_id = ?";
+        String deletePollQuery = "DELETE FROM polls WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement deleteVotesStmt = conn.prepareStatement(deleteVotesQuery);
+             PreparedStatement deleteOptionsStmt = conn.prepareStatement(deleteOptionsQuery);
+             PreparedStatement deleteQuestionsStmt = conn.prepareStatement(deleteQuestionsQuery);
+             PreparedStatement deletePollStmt = conn.prepareStatement(deletePollQuery)) {
 
-            stmt.setInt(1, poll.getId());
-            int rowsDeleted = stmt.executeUpdate();
+            conn.setAutoCommit(false);
+
+            deleteVotesStmt.setInt(1, poll.getId());
+            deleteVotesStmt.executeUpdate();
+
+            deleteOptionsStmt.setInt(1, poll.getId());
+            deleteOptionsStmt.executeUpdate();
+
+            deleteQuestionsStmt.setInt(1, poll.getId());
+            deleteQuestionsStmt.executeUpdate();
+
+            deletePollStmt.setInt(1, poll.getId());
+            int rowsDeleted = deletePollStmt.executeUpdate();
+
+            conn.commit();
             return rowsDeleted > 0;
 
         } catch (SQLException e) {
             System.err.println("Błąd podczas usuwania ankiety: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public boolean togglePollStatus(Poll poll) {
@@ -175,7 +189,7 @@ public class PollService {
             int rowsUpdated = stmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                poll.setActive(!poll.isActive()); // Zaktualizuj status lokalnie
+                poll.setActive(!poll.isActive());
                 return true;
             }
         } catch (SQLException e) {
@@ -233,7 +247,6 @@ public class PollService {
         }
     }
 
-
     private List<String> getOptionsForQuestion(int questionId, Connection conn) throws SQLException {
         String optionQuery = "SELECT option_text FROM options WHERE question_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(optionQuery)) {
@@ -247,7 +260,6 @@ public class PollService {
             }
         }
     }
-
 
     public int getOptionIdByText(int questionId, String optionText) {
         String sql = "SELECT id FROM options WHERE question_id = ? AND option_text = ?";
@@ -264,8 +276,39 @@ public class PollService {
         } catch (SQLException e) {
             System.err.println("Błąd podczas pobierania ID opcji: " + e.getMessage());
         }
-        return -1; // Jeśli opcja nie istnieje
+        return -1;
     }
+
+    public Map<String, Integer> getPollResults(int pollId) {
+        Map<String, Integer> results = new HashMap<>();
+        String query = """
+        SELECT options.option_text, COUNT(votes.id) AS vote_count
+        FROM options
+        LEFT JOIN votes ON options.id = votes.selected_option_id
+        LEFT JOIN questions ON options.question_id = questions.id
+        LEFT JOIN polls ON questions.poll_id = polls.id
+        WHERE polls.id = ?
+        GROUP BY options.option_text;
+    """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, pollId); // Ustawienie ID ankiety
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String optionText = rs.getString("option_text");
+                int voteCount = rs.getInt("vote_count");
+                results.put(optionText, voteCount);
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas pobierania wyników ankiety: " + e.getMessage());
+        }
+
+        return results;
+    }
+
+
 
 
 }

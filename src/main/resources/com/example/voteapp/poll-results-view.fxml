@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.voteapp.controllers.PollResultsController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+    <!-- Nagłówek -->
+    <Label text="Wyniki Ankiety" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+
+    <!-- Wykres słupkowy -->
+    <BarChart fx:id="resultsBarChart" prefWidth="800" prefHeight="700" style="-fx-background-color: #FFFFFF; -fx-border-color: #CCCCCC; -fx-border-radius: 5;">
+        <xAxis>
+            <CategoryAxis fx:id="xAxis" label="Opcje" />
+        </xAxis>
+        <yAxis>
+            <NumberAxis fx:id="yAxis" label="Głosy" />
+        </yAxis>
+    </BarChart>
+
+    <!-- Przycisk powrotu -->
+    <Button text="Powrót" fx:id="backButton" style="-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 5"/>
+</VBox>

@@ -10,7 +10,7 @@ import java.io.IOException;
 public class ViewUtils {
 
     private static final double WIDTH = 1200;  // Stała szerokość aplikacji
-    private static final double HEIGHT = 700; // Stała wysokość aplikacji
+    private static final double HEIGHT = 800; // Stała wysokość aplikacji
 
     public static void switchView(Stage stage, String fxmlFile) {
         try {

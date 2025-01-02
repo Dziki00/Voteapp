@@ -113,6 +113,25 @@ public class AdminController {
         }
     }
 
+    private void openPollResultsPopup(Poll poll) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/voteapp/poll-results-view.fxml"));
+            Parent root = loader.load();
+
+            PollResultsController controller = loader.getController();
+            controller.setPoll(poll); // Przekazujemy ankietę do kontrolera wyników
+
+            Stage popupStage = new Stage();
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setTitle("Wyniki Ankiety");
+            popupStage.setScene(new Scene(root, 800, 600));
+            popupStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć wyników ankiety.");
+        }
+    }
+
     private void deletePoll(Poll poll) {
         boolean success = pollService.deletePoll(poll);
         if (success) {
