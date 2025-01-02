@@ -56,6 +56,7 @@ public class RegisterController {
     @FXML
     private void initialize() {
         registerButton.setOnAction(event -> {
+            // Pobierz dane z pól
             String pesel = peselField.getText();
             String email = emailField.getText();
             String password = passwordField.getText();
@@ -64,12 +65,40 @@ public class RegisterController {
             String birthDateInput = birthYearDate.getText();
             String voivodeship = voivodeshipComboBox.getValue();
 
-            // Walidacja daty
+            // Sprawdzenie czy wszystkie pola są wypełnione
+            if (pesel.isEmpty() || email.isEmpty() || password.isEmpty() || repeatPassword.isEmpty() ||
+                    address.isEmpty() || birthDateInput.isEmpty() || voivodeship == null || voivodeship.isEmpty()) {
+                System.out.println("Wszystkie pola muszą zostać wypełnione!");
+                return;
+            }
+
+            // Walidacja PESEL
+            if (!pesel.matches("\\d{11}")) {
+                System.out.println("PESEL musi składać się z 11 cyfr!");
+                return;
+            }
+
+            // Wyodrębnienie daty urodzenia z PESEL-u
+            LocalDate peselBirthDate;
+            try {
+                peselBirthDate = extractBirthDateFromPesel(pesel);
+            } catch (IllegalArgumentException e) {
+                System.out.println("PESEL zawiera nieprawidłową datę urodzenia.");
+                return;
+            }
+
+            // Walidacja daty urodzenia
             LocalDate birthDate;
             try {
                 birthDate = LocalDate.parse(birthDateInput, DATE_FORMATTER);
             } catch (DateTimeParseException e) {
                 System.out.println("Nieprawidłowy format daty. Użyj formatu DD.MM.YYYY.");
+                return;
+            }
+
+            // Porównanie daty urodzenia z PESEL-em
+            if (!birthDate.equals(peselBirthDate)) {
+                System.out.println("Podana data urodzenia nie zgadza się z PESEL-em!");
                 return;
             }
 
@@ -81,18 +110,6 @@ public class RegisterController {
 
             // Haszowanie hasła
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
-            // Walidacja PESEL
-            if (!pesel.matches("\\d{11}")) {
-                System.out.println("PESEL musi składać się z 11 cyfr!");
-                return;
-            }
-
-            // Sprawdzenie województwa
-            if (voivodeship == null || voivodeship.isEmpty()) {
-                System.out.println("Proszę wybrać województwo!");
-                return;
-            }
 
             // Zapis danych do bazy danych
             try (Connection connection = DatabaseConnection.connect()) {
@@ -128,5 +145,34 @@ public class RegisterController {
                 "Świętokrzyskie", "Warmińsko-Mazurskie", "Wielkopolskie",
                 "Zachodniopomorskie"
         );
+    }
+
+    private LocalDate extractBirthDateFromPesel(String pesel) {
+        int year = Integer.parseInt(pesel.substring(0, 2));
+        int month = Integer.parseInt(pesel.substring(2, 4));
+        int day = Integer.parseInt(pesel.substring(4, 6));
+
+        // Obsługa zakresów wiekowych (np. rok 1900, 2000, 2100 itd.)
+        if (month > 80) {
+            year += 1800;
+            month -= 80;
+        } else if (month > 60) {
+            year += 2200;
+            month -= 60;
+        } else if (month > 40) {
+            year += 2100;
+            month -= 40;
+        } else if (month > 20) {
+            year += 2000;
+            month -= 20;
+        } else {
+            year += 1900;
+        }
+
+        try {
+            return LocalDate.of(year, month, day);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Nieprawidłowa data w PESEL-u.");
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.example.voteapp.model.PollService;
 import com.example.voteapp.model.Question;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -58,38 +59,56 @@ public class CreatePollController {
 
     private void addQuestion() {
         questionCount++;
+
         VBox questionBox = new VBox(10);
-        questionBox.setStyle("-fx-padding: 10; -fx-background-color: #f9f9f9; -fx-border-color: #dcdcdc; -fx-border-radius: 5;");
+        questionBox.setStyle("-fx-padding: 10; -fx-background-color: #ffffff; -fx-border-color: #2196F3; -fx-border-width: 2; -fx-border-radius: 5;");
 
         // Pole pytania
         TextField questionField = new TextField();
         questionField.setPromptText("Treść pytania #" + questionCount);
-        questionField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
+        questionField.setStyle("-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #E3F2FD; -fx-border-color: #64B5F6; -fx-border-radius: 5;");
 
-        // Pole opcji
+        // Kontener na opcje
         VBox optionsBox = new VBox(5);
-        TextField option1 = new TextField();
-        option1.setPromptText("Opcja 1");
-        TextField option2 = new TextField();
-        option2.setPromptText("Opcja 2");
-        optionsBox.getChildren().addAll(option1, option2);
+        addOption(optionsBox);
+        addOption(optionsBox);
 
-        // Dodawanie kolejnych opcji
+        // Dodawanie opcji
         Button addOptionButton = new Button("Dodaj opcję");
-        addOptionButton.setOnAction(e -> {
-            TextField newOption = new TextField();
-            newOption.setPromptText("Opcja " + (optionsBox.getChildren().size() + 1));
-            newOption.setStyle("-fx-font-size: 14px; -fx-padding: 5;");
-            optionsBox.getChildren().add(newOption);
+        addOptionButton.setStyle("-fx-background-color: #43A047; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
+        addOptionButton.setOnAction(e -> addOption(optionsBox));
+
+        // Usuwanie pytania
+        Button deleteQuestionButton = new Button("Usuń pytanie");
+        deleteQuestionButton.setStyle("-fx-background-color: #E53935; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
+        deleteQuestionButton.setOnAction(e -> {
+            questionsContainer.getChildren().remove(questionBox);
+            questionCount--;
         });
 
-        questionBox.getChildren().addAll(questionField, optionsBox, addOptionButton);
+        questionBox.getChildren().addAll(questionField, optionsBox, addOptionButton, deleteQuestionButton);
         questionsContainer.getChildren().add(questionBox);
+    }
+
+    private void addOption(VBox optionsBox) {
+        HBox optionBox = new HBox(10);
+        optionBox.setStyle("-fx-padding: 5; -fx-border-color: #dcdcdc; -fx-background-color: #ffffff; -fx-border-radius: 5;");
+
+        TextField optionField = new TextField();
+        optionField.setPromptText("Treść opcji");
+        optionField.setStyle("-fx-font-size: 14px; -fx-padding: 5; -fx-background-color: #E8F5E9; -fx-border-color: #A5D6A7; -fx-border-radius: 5;");
+
+        Button deleteOptionButton = new Button("Usuń opcję");
+        deleteOptionButton.setStyle("-fx-background-color: #E53935; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
+        deleteOptionButton.setOnAction(e -> optionsBox.getChildren().remove(optionBox));
+
+        optionBox.getChildren().addAll(optionField, deleteOptionButton);
+        optionsBox.getChildren().add(optionBox);
     }
 
     private void savePoll() {
         try {
-            // Pobierz dane ankiety
+            // Walidacja danych podstawowych
             String pollName = pollNameField.getText();
             LocalDate startDate = startDateField.getValue();
             String startTime = startTimeField.getText();
@@ -98,18 +117,15 @@ public class CreatePollController {
             String voivodeship = voivodeshipField.getText();
             String municipality = municipalityField.getText();
 
-            // Walidacja danych
             if (pollName.isEmpty() || startDate == null || endDate == null || startTime.isEmpty() || endTime.isEmpty()) {
-                showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Wszystkie pola wymagane (oprócz województwa i gminy) muszą być wypełnione.");
+                showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Wszystkie wymagane pola muszą być wypełnione.");
                 return;
             }
 
-            LocalTime startLocalTime;
-            LocalTime endLocalTime;
-            try {
-                startLocalTime = LocalTime.parse(startTime, TIME_FORMATTER);
-                endLocalTime = LocalTime.parse(endTime, TIME_FORMATTER);
-            } catch (Exception e) {
+            LocalTime startLocalTime = parseTime(startTime);
+            LocalTime endLocalTime = parseTime(endTime);
+
+            if (startLocalTime == null || endLocalTime == null) {
                 showAlert(Alert.AlertType.ERROR, "Błąd Formatu", "Podaj czas w formacie HH:mm.");
                 return;
             }
@@ -123,39 +139,9 @@ public class CreatePollController {
             }
 
             // Pobierz pytania i opcje
-            List<Question> questions = new ArrayList<>();
-            for (var node : questionsContainer.getChildren()) {
-                if (node instanceof VBox) {
-                    VBox questionBox = (VBox) node;
-                    TextField questionField = (TextField) questionBox.getChildren().get(0);
-                    String questionText = questionField.getText();
-                    if (questionText.isEmpty()) {
-                        showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Treść pytania nie może być pusta.");
-                        return;
-                    }
-
-                    VBox optionsBox = (VBox) questionBox.getChildren().get(1);
-                    List<String> options = new ArrayList<>();
-                    for (var optionNode : optionsBox.getChildren()) {
-                        if (optionNode instanceof TextField) {
-                            String optionText = ((TextField) optionNode).getText();
-                            if (!optionText.isEmpty()) {
-                                options.add(optionText);
-                            }
-                        }
-                    }
-
-                    if (options.size() < 2) {
-                        showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Każde pytanie musi mieć przynajmniej 2 opcje.");
-                        return;
-                    }
-
-                    questions.add(new Question(questionText, options));
-                }
-            }
-
+            List<Question> questions = getQuestionsAndOptions();
             if (questions.isEmpty()) {
-                showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Ankieta musi zawierać przynajmniej jedno pytanie.");
+                showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Ankieta musi zawierać przynajmniej jedno pytanie z opcjami.");
                 return;
             }
 
@@ -176,12 +162,52 @@ public class CreatePollController {
         }
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private LocalTime parseTime(String time) {
+        try {
+            return LocalTime.parse(time, TIME_FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private List<Question> getQuestionsAndOptions() {
+        List<Question> questions = new ArrayList<>();
+
+        for (var node : questionsContainer.getChildren()) {
+            if (node instanceof VBox) {
+                VBox questionBox = (VBox) node;
+                TextField questionField = (TextField) questionBox.getChildren().get(0);
+                String questionText = questionField.getText();
+
+                if (questionText.isEmpty()) {
+                    showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Treść pytania nie może być pusta.");
+                    return new ArrayList<>();
+                }
+
+                VBox optionsBox = (VBox) questionBox.getChildren().get(1);
+                List<String> options = new ArrayList<>();
+
+                for (var optionNode : optionsBox.getChildren()) {
+                    if (optionNode instanceof HBox) {
+                        HBox optionBox = (HBox) optionNode;
+                        TextField optionField = (TextField) optionBox.getChildren().get(0);
+                        String optionText = optionField.getText();
+
+                        if (!optionText.isEmpty()) {
+                            options.add(optionText);
+                        }
+                    }
+                }
+
+                if (options.size() < 2) {
+                    showAlert(Alert.AlertType.ERROR, "Błąd Walidacji", "Każde pytanie musi mieć przynajmniej 2 opcje.");
+                    return new ArrayList<>();
+                }
+
+                questions.add(new Question(questionText, options));
+            }
+        }
+        return questions;
     }
 
     private void clearForm() {
@@ -194,6 +220,14 @@ public class CreatePollController {
         municipalityField.clear();
         questionsContainer.getChildren().clear();
         questionCount = 0;
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML

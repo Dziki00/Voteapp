@@ -77,6 +77,7 @@ public class PollResultsController {
 
     private void loadResultsForQuestion(String questionText) {
         resultsBarChart.getData().clear();
+        xAxis.getCategories().clear(); // Upewnij się, że czyścisz poprzednie kategorie
 
         // Pobierz ID pytania na podstawie tekstu
         int questionId = pollService.getQuestionIdByText(pollId, questionText);
@@ -88,13 +89,16 @@ public class PollResultsController {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Wyniki Głosowania");
 
+        // Dodaj dane do wykresu
         for (Map.Entry<String, Integer> entry : pollResults.entrySet()) {
             System.out.println("Opcja: " + entry.getKey() + ", Głosy: " + entry.getValue());
             series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
+            xAxis.getCategories().add(entry.getKey()); // Dodaj kategorię do osi X
         }
 
         resultsBarChart.getData().add(series);
     }
+
 
     @FXML
     private void handleBackButton() {
