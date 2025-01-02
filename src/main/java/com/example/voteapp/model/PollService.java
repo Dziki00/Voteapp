@@ -82,6 +82,7 @@ public class PollService {
         }
     }
 
+
     public boolean hasUserVoted(int pollId, int userId) {
         String query = "SELECT COUNT(*) FROM votes WHERE poll_id = ? AND user_id = ?";
 
@@ -100,26 +101,6 @@ public class PollService {
             return false;
         }
     }
-
-    public boolean saveUserVote(int pollId, int userId, int questionId, int selectedOptionId) {
-        String sql = "INSERT INTO votes (poll_id, user_id, question_id, selected_option_id) VALUES (?, ?, ?, ?)";
-        try (Connection connection = DatabaseConnection.connect();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, pollId);
-            statement.setInt(2, userId);
-            statement.setInt(3, questionId);
-            statement.setInt(4, selectedOptionId);
-
-            int rowsAffected = statement.executeUpdate();
-            return rowsAffected > 0;
-
-        } catch (SQLException e) {
-            System.err.println("Błąd podczas zapisu głosu użytkownika: " + e.getMessage());
-            return false;
-        }
-    }
-
     public boolean updatePoll(Poll poll) {
         String query = "UPDATE polls SET name = ?, start_date = ?, end_date = ?, voivodeship = ?, municipality = ? WHERE id = ?";
 
@@ -268,32 +249,33 @@ public class PollService {
 
             statement.setInt(1, questionId);
             statement.setString(2, optionText);
-            ResultSet resultSet = statement.executeQuery();
 
-            if (resultSet.next()) {
-                return resultSet.getInt("id");
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                }
             }
         } catch (SQLException e) {
             System.err.println("Błąd podczas pobierania ID opcji: " + e.getMessage());
         }
-        return -1;
+        return -1; // Zwraca -1, jeśli ID opcji nie zostanie znalezione
     }
 
-    public Map<String, Integer> getPollResults(int pollId) {
-        Map<String, Integer> results = new HashMap<>();
+
+    public Map<String, Integer> getResultsForQuestion(int questionId) {
         String query = """
-        SELECT options.option_text, COUNT(votes.id) AS vote_count
-        FROM options
-        LEFT JOIN votes ON options.id = votes.selected_option_id
-        LEFT JOIN questions ON options.question_id = questions.id
-        LEFT JOIN polls ON questions.poll_id = polls.id
-        WHERE polls.id = ?
-        GROUP BY options.option_text;
-    """;
+                SELECT options.option_text, COUNT(votes.id) AS vote_count
+                FROM options
+                LEFT JOIN votes ON options.id = votes.selected_option_id
+                WHERE options.question_id = ?
+                GROUP BY options.option_text;
+                """;
+
+        Map<String, Integer> results = new HashMap<>();
 
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, pollId); // Ustawienie ID ankiety
+            stmt.setInt(1, questionId);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -302,12 +284,69 @@ public class PollService {
                 results.put(optionText, voteCount);
             }
         } catch (SQLException e) {
-            System.err.println("Błąd podczas pobierania wyników ankiety: " + e.getMessage());
+            System.err.println("Błąd podczas pobierania wyników pytania: " + e.getMessage());
         }
 
         return results;
     }
 
+    public boolean saveUserVote(int pollId, int userId, int questionId, int selectedOptionId) {
+        String sql = "INSERT INTO votes (poll_id, user_id, question_id, selected_option_id) VALUES (?, ?, ?, ?)";
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, pollId);
+            statement.setInt(2, userId);
+            statement.setInt(3, questionId);
+            statement.setInt(4, selectedOptionId);
+
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas zapisu głosu użytkownika: " + e.getMessage());
+            return false;
+        }
+    }
+    public List<String> getQuestionsForPoll(int pollId) {
+        String query = "SELECT question_text FROM questions WHERE poll_id = ?";
+        List<String> questions = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, pollId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    questions.add(rs.getString("question_text"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas pobierania pytań dla ankiety: " + e.getMessage());
+        }
+
+        return questions;
+    }
+
+    public int getQuestionIdByText(int pollId, String questionText) {
+        String query = "SELECT id FROM questions WHERE poll_id = ? AND question_text = ?";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, pollId);
+            stmt.setString(2, questionText);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas pobierania ID pytania: " + e.getMessage());
+        }
+        return -1; // Zwraca -1, jeśli ID pytania nie zostanie znalezione
+    }
 
 
 

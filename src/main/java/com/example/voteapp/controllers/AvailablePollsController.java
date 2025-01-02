@@ -3,6 +3,7 @@ package com.example.voteapp.controllers;
 import com.example.voteapp.model.Poll;
 import com.example.voteapp.model.PollService;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -38,7 +39,6 @@ public class AvailablePollsController {
 
     @FXML
     private void initialize() {
-        // Ankiety zostaną załadowane dopiero po ustawieniu userId
         System.out.println("AvailablePollsController został zainicjalizowany.");
     }
 
@@ -74,17 +74,21 @@ public class AvailablePollsController {
 
         Button voteButton = new Button("Zagłosuj");
         voteButton.setStyle("-fx-background-color: #43A047; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
-        voteButton.setDisable(true); // Domyślnie zablokowane, dopóki nie zweryfikujemy stanu ankiety
+        voteButton.setDisable(true);
         voteButton.setOnAction(e -> openVotePopup(poll));
 
-        // Aktualizuj licznik czasu i zarządzaj dostępnością przycisku
-        updateCountdownLabel(poll, countdownLabel, voteButton);
+        Button resultsButton = new Button("Wyniki");
+        resultsButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-padding: 5 10; -fx-border-radius: 5; -fx-background-radius: 5;");
+        resultsButton.setDisable(true);
+        resultsButton.setOnAction(e -> openResultsPopup(poll));
 
-        pollBox.getChildren().addAll(pollNameLabel, pollStatusLabel, countdownLabel, voteButton);
+        updateCountdownLabel(poll, countdownLabel, voteButton, resultsButton);
+
+        pollBox.getChildren().addAll(pollNameLabel, pollStatusLabel, countdownLabel, voteButton, resultsButton);
         return pollBox;
     }
 
-    private void updateCountdownLabel(Poll poll, Label countdownLabel, Button voteButton) {
+    private void updateCountdownLabel(Poll poll, Label countdownLabel, Button voteButton, Button resultsButton) {
         Timer timer = new Timer(true);
         TimerTask task = new TimerTask() {
             @Override
@@ -92,24 +96,24 @@ public class AvailablePollsController {
                 Platform.runLater(() -> {
                     LocalDateTime now = LocalDateTime.now();
                     if (poll.getStartDate().isAfter(now)) {
-                        // Czas do rozpoczęcia
                         Duration duration = Duration.between(now, poll.getStartDate());
                         countdownLabel.setText("Czas do rozpoczęcia: " + formatDuration(duration));
                         voteButton.setDisable(true);
+                        resultsButton.setDisable(true);
                     } else if (poll.getEndDate().isAfter(now)) {
-                        // Czas do zakończenia
                         Duration duration = Duration.between(now, poll.getEndDate());
                         countdownLabel.setText("Czas do zakończenia: " + formatDuration(duration));
                         voteButton.setDisable(!poll.isActive());
+                        resultsButton.setDisable(true);
                     } else {
-                        // Po zakończeniu ankiety
                         countdownLabel.setText("Ankieta zakończona");
                         voteButton.setDisable(true);
+                        resultsButton.setDisable(false);
                     }
                 });
             }
         };
-        timer.scheduleAtFixedRate(task, 0, 1000); // Odświeżaj co sekundę
+        timer.scheduleAtFixedRate(task, 0, 1000);
     }
 
     private String formatDuration(Duration duration) {
@@ -129,22 +133,17 @@ public class AvailablePollsController {
 
     private void openVotePopup(Poll poll) {
         try {
-            // Wczytanie widoku głosowania
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/voteapp/vote-view.fxml"));
             Parent root = loader.load();
 
-            // Pobieranie kontrolera dla widoku głosowania
             VoteController voteController = loader.getController();
-
-            // Przekazanie ankiety i userId do kontrolera
             voteController.setPoll(poll, userId);
 
-            // Konfiguracja nowego okna dla głosowania
             Stage voteStage = new Stage();
             voteStage.initModality(Modality.APPLICATION_MODAL);
             voteStage.setTitle("Głosowanie");
-            voteStage.setScene(new Scene(root, 600, 400)); // Ustaw rozmiar okna
-            voteStage.showAndWait(); // Oczekuj na zamknięcie okna przed kontynuacją
+            voteStage.setScene(new Scene(root, 600, 400));
+            voteStage.showAndWait();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -152,6 +151,25 @@ public class AvailablePollsController {
         }
     }
 
+    private void openResultsPopup(Poll poll) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/voteapp/poll-results-view.fxml"));
+            Parent root = loader.load();
+
+            PollResultsController resultsController = loader.getController();
+            resultsController.setPoll(poll);
+
+            Stage resultsStage = new Stage();
+            resultsStage.initModality(Modality.APPLICATION_MODAL);
+            resultsStage.setTitle("Wyniki ankiety: " + poll.getName());
+            resultsStage.setScene(new Scene(root, 800, 600));
+            resultsStage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć okna wyników.");
+        }
+    }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);

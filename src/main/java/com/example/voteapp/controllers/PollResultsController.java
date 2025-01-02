@@ -2,14 +2,17 @@ package com.example.voteapp.controllers;
 
 import com.example.voteapp.model.Poll;
 import com.example.voteapp.model.PollService;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
 
+import java.util.List;
 import java.util.Map;
 
 public class PollResultsController {
@@ -24,6 +27,9 @@ public class PollResultsController {
     private NumberAxis yAxis;
 
     @FXML
+    private ComboBox<String> questionSelector;
+
+    @FXML
     private Button backButton;
 
     private final PollService pollService = new PollService();
@@ -32,27 +38,25 @@ public class PollResultsController {
 
     @FXML
     private void initialize() {
-        // Ustawienia osi X
         if (xAxis != null) {
             xAxis.setLabel("Opcje");
         }
-
-        // Ustawienia osi Y
         if (yAxis != null) {
             yAxis.setLabel("Głosy");
-            yAxis.setAutoRanging(false); // Wyłącz automatyczne dopasowanie zakresu
-            yAxis.setLowerBound(0);      // Dolna granica
-            yAxis.setUpperBound(10);     // Górna granica (zmień na większą, jeśli głosów może być więcej)
-            yAxis.setTickUnit(1);        // Jednostka skali
+            yAxis.setAutoRanging(false);
+            yAxis.setLowerBound(0);
+            yAxis.setUpperBound(10);
+            yAxis.setTickUnit(1);
         }
-
-        // Ustawienia wykresu
-        if (resultsBarChart != null) {
-            resultsBarChart.setCategoryGap(20); // Odstęp między kategoriami (słupkami)
-            resultsBarChart.setBarGap(5);      // Odstęp między słupkami w tej samej kategorii
-        }
-
         System.out.println("PollResultsController initialized.");
+
+        // Obsługa zmiany wybranego pytania
+        questionSelector.setOnAction(event -> {
+            String selectedQuestion = questionSelector.getValue();
+            if (selectedQuestion != null) {
+                loadResultsForQuestion(selectedQuestion);
+            }
+        });
     }
 
     public void setPoll(Poll poll) {
@@ -60,22 +64,26 @@ public class PollResultsController {
 
         if (poll != null) {
             this.pollId = poll.getId();
-            loadResults();
+            loadQuestions();
         } else {
             System.err.println("Poll object is null. Cannot load results.");
         }
     }
 
-    public void setPollId(int pollId) {
-        this.pollId = pollId;
-        loadResults();
+    private void loadQuestions() {
+        List<String> questions = pollService.getQuestionsForPoll(pollId);
+        questionSelector.setItems(FXCollections.observableArrayList(questions));
     }
 
-    private void loadResults() {
+    private void loadResultsForQuestion(String questionText) {
         resultsBarChart.getData().clear();
 
-        Map<String, Integer> pollResults = pollService.getPollResults(poll.getId());
-        System.out.println("Wyniki ankiety: " + pollResults);
+        // Pobierz ID pytania na podstawie tekstu
+        int questionId = pollService.getQuestionIdByText(pollId, questionText);
+
+        // Pobierz wyniki dla wybranego pytania
+        Map<String, Integer> pollResults = pollService.getResultsForQuestion(questionId);
+        System.out.println("Wyniki dla pytania \"" + questionText + "\": " + pollResults);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Wyniki Głosowania");
@@ -86,10 +94,6 @@ public class PollResultsController {
         }
 
         resultsBarChart.getData().add(series);
-
-        // Aktualizacja górnej granicy osi Y na podstawie wyników
-        int maxVotes = pollResults.values().stream().mapToInt(Integer::intValue).max().orElse(10);
-        yAxis.setUpperBound(Math.max(maxVotes + 1, 10)); // Dopasuj górną granicę, minimum 10
     }
 
     @FXML

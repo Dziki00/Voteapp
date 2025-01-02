@@ -8,8 +8,11 @@
     <!-- Nagłówek -->
     <Label text="Wyniki Ankiety" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
 
+    <!-- Wybór pytania -->
+    <ComboBox fx:id="questionSelector" promptText="Wybierz pytanie" style="-fx-font-size: 14px;"/>
+
     <!-- Wykres słupkowy -->
-    <BarChart fx:id="resultsBarChart" prefWidth="800" prefHeight="700" style="-fx-background-color: #FFFFFF; -fx-border-color: #CCCCCC; -fx-border-radius: 5;">
+    <BarChart fx:id="resultsBarChart" prefWidth="800" prefHeight="600" style="-fx-background-color: #FFFFFF; -fx-border-color: #CCCCCC; -fx-border-radius: 5;">
         <xAxis>
             <CategoryAxis fx:id="xAxis" label="Opcje" />
         </xAxis>
@@ -18,6 +21,4 @@
         </yAxis>
     </BarChart>
 
-    <!-- Przycisk powrotu -->
-    <Button text="Powrót" fx:id="backButton" style="-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 5"/>
 </VBox>
