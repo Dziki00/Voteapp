@@ -63,7 +63,7 @@ public class LoginController {
         // Logowanie użytkownika
         Integer userId = userService.getUserId(pesel, password);
         if (userId != null) {
-            System.out.println("Logowanie użytkownika zakończone sukcesem. userId: " + userId);
+            System.out.println("Logowanie użytkownika zakończone sukcesem.");
 
             // Przekazywanie userId do widoku użytkownika
             ViewUtils.switchViewWithUserId((Stage) loginButton.getScene().getWindow(), "user-view.fxml",

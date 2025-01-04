@@ -96,7 +96,7 @@ public class VoteController {
         if (validateSelections()) {
             boolean allVotesSaved = saveVoteToDatabase();
             if (allVotesSaved) {
-                disableVoting("Twój głos został zapisany.");
+                disableVoting("Dziękujemy za oddanie głosu.");
                 showAlert(Alert.AlertType.INFORMATION, "Sukces", "Twój głos został zapisany.");
             } else {
                 showAlert(Alert.AlertType.ERROR, "Błąd", "Wystąpił błąd podczas zapisywania odpowiedzi.");

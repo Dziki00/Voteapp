@@ -12,7 +12,8 @@
     <Label fx:id="pollNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;" />
 
     <!-- Kontener na pytania -->
-    <VBox fx:id="questionsContainer" spacing="20" style="-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 10;" />
+    <VBox fx:id="questionsContainer" spacing="20" alignment="CENTER"
+          style="-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 10;" />
 
     <!-- Przycisk zatwierdzania -->
     <Button text="Zatwierdź głos" fx:id="submitVoteButton" onAction="#submitVote"

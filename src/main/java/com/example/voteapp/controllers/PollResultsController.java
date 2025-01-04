@@ -10,6 +10,8 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -38,6 +40,12 @@ public class PollResultsController {
 
     @FXML
     private void initialize() {
+        configureChart();
+        configureQuestionSelector();
+        System.out.println("PollResultsController initialized.");
+    }
+
+    private void configureChart() {
         if (xAxis != null) {
             xAxis.setLabel("Opcje");
         }
@@ -45,12 +53,13 @@ public class PollResultsController {
             yAxis.setLabel("Głosy");
             yAxis.setAutoRanging(false);
             yAxis.setLowerBound(0);
-            yAxis.setUpperBound(10);
+            yAxis.setUpperBound(10); // Domyślny zakres można dostosować
             yAxis.setTickUnit(1);
         }
-        System.out.println("PollResultsController initialized.");
+        resultsBarChart.setAnimated(false); // Wyłączenie animacji dla lepszej czytelności
+    }
 
-        // Obsługa zmiany wybranego pytania
+    private void configureQuestionSelector() {
         questionSelector.setOnAction(event -> {
             String selectedQuestion = questionSelector.getValue();
             if (selectedQuestion != null) {
@@ -71,40 +80,63 @@ public class PollResultsController {
     }
 
     private void loadQuestions() {
-        List<String> questions = pollService.getQuestionsForPoll(pollId);
-        questionSelector.setItems(FXCollections.observableArrayList(questions));
+        try {
+            List<String> questions = pollService.getQuestionsForPoll(pollId);
+            questionSelector.setItems(FXCollections.observableArrayList(questions));
+        } catch (Exception e) {
+            System.err.println("Error loading questions: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void loadResultsForQuestion(String questionText) {
-        resultsBarChart.getData().clear();
-        xAxis.getCategories().clear(); // Upewnij się, że czyścisz poprzednie kategorie
+        try {
+            resultsBarChart.getData().clear();
+            xAxis.getCategories().clear();
 
-        // Pobierz ID pytania na podstawie tekstu
-        int questionId = pollService.getQuestionIdByText(pollId, questionText);
+            // Pobierz ID pytania na podstawie tekstu
+            int questionId = pollService.getQuestionIdByText(pollId, questionText);
 
-        // Pobierz wyniki dla wybranego pytania
-        Map<String, Integer> pollResults = pollService.getResultsForQuestion(questionId);
-        System.out.println("Wyniki dla pytania \"" + questionText + "\": " + pollResults);
+            // Pobierz wyniki dla wybranego pytania
+            Map<String, Integer> pollResults = pollService.getResultsForQuestion(questionId);
+            System.out.println("Wyniki dla pytania \"" + questionText + "\": " + pollResults);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Wyniki Głosowania");
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Wyniki");
 
-        // Dodaj dane do wykresu
-        for (Map.Entry<String, Integer> entry : pollResults.entrySet()) {
-            System.out.println("Opcja: " + entry.getKey() + ", Głosy: " + entry.getValue());
-            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
-            xAxis.getCategories().add(entry.getKey()); // Dodaj kategorię do osi X
+            // Dodaj dane do wykresu i ustaw etykiety nad słupkami
+            for (Map.Entry<String, Integer> entry : pollResults.entrySet()) {
+                System.out.println("Opcja: " + entry.getKey() + ", Głosy: " + entry.getValue());
+                XYChart.Data<String, Number> data = new XYChart.Data<>(entry.getKey(), entry.getValue());
+                series.getData().add(data);
+
+                xAxis.getCategories().add(entry.getKey()); // Dodaj kategorię do osi X
+
+                // Dodaj etykiety nad słupkami
+                data.nodeProperty().addListener((observable, oldValue, newValue) -> {
+                    if (newValue != null) {
+                        Label label = new Label(entry.getValue().toString());
+                        label.setStyle("-fx-font-size: 12; -fx-font-weight: bold;");
+                        StackPane bar = (StackPane) newValue;
+                        bar.getChildren().add(label);
+                        label.setTranslateY(-15); // Przesunięcie etykiety w górę
+                    }
+                });
+            }
+
+            resultsBarChart.getData().add(series);
+
+            // Dynamicznie ustaw zakres osi Y na podstawie wyników
+            adjustYAxis(pollResults);
+
+        } catch (Exception e) {
+            System.err.println("Error loading results for question: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        resultsBarChart.getData().add(series);
     }
 
-
-    @FXML
-    private void handleBackButton() {
-        if (backButton != null) {
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.close();
-        }
+    private void adjustYAxis(Map<String, Integer> pollResults) {
+        int maxVotes = pollResults.values().stream().max(Integer::compareTo).orElse(10);
+        yAxis.setUpperBound(Math.max(10, maxVotes + 2)); // Dostosuj zakres z zapasem
     }
 }

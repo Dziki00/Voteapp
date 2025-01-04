@@ -4,21 +4,29 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.voteapp.controllers.PollResultsController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+<VBox xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.voteapp.controllers.PollResultsController"
+      spacing="20" alignment="CENTER"
+      style="-fx-padding: 30; -fx-background-color: #E8F5E9; -fx-background-radius: 15; -fx-font-family: 'Arial';">
+
     <!-- Nagłówek -->
-    <Label text="Wyniki Ankiety" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+    <Label text="Wyniki" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1565C0;" />
 
     <!-- Wybór pytania -->
-    <ComboBox fx:id="questionSelector" promptText="Wybierz pytanie" style="-fx-font-size: 14px;"/>
+    <ComboBox fx:id="questionSelector" promptText="Wybierz pytanie"
+              style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-radius: 10; -fx-pref-width: 300;" />
 
     <!-- Wykres słupkowy -->
-    <BarChart fx:id="resultsBarChart" prefWidth="800" prefHeight="600" style="-fx-background-color: #FFFFFF; -fx-border-color: #CCCCCC; -fx-border-radius: 5;">
-        <xAxis>
-            <CategoryAxis fx:id="xAxis" label="Opcje" />
-        </xAxis>
-        <yAxis>
-            <NumberAxis fx:id="yAxis" label="Głosy" />
-        </yAxis>
-    </BarChart>
+    <StackPane style="-fx-padding: 15; -fx-background-color: #E8F5E9; -fx-background-radius: 15; -fx-border-color: black; -fx-border-radius: 15; -fx-border-width: 2;">
+        <BarChart fx:id="resultsBarChart" prefWidth="800" prefHeight="600" style="-fx-background-radius: 10;">
+            <xAxis>
+                <CategoryAxis fx:id="xAxis" label="Opcje"
+                              style="-fx-tick-label-fill: #333333; -fx-font-size: 12px;" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis fx:id="yAxis" label="Głosy"
+                            style="-fx-tick-label-fill: #333333; -fx-font-size: 12px;" />
+            </yAxis>
+        </BarChart>
+    </StackPane>
 
 </VBox>

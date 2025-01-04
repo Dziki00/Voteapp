@@ -10,7 +10,7 @@
       spacing="20" alignment="CENTER" style="-fx-padding: 20; -fx-background-color: #E8F5E9;">
 
     <!-- Nagłówek -->
-    <Label text="Dostępne Ankiety" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+    <Label text="Dostępne ankiety" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
 
     <!-- Kontener na listę ankiet z możliwością przewijania -->
     <ScrollPane fx:id="pollsScrollPane" fitToWidth="true" style="-fx-padding: 10; -fx-background-color: transparent;">
