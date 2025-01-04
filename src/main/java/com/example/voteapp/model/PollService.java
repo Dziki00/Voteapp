@@ -1,6 +1,7 @@
 package com.example.voteapp.model;
 
 import com.example.voteapp.utils.DatabaseConnection;
+import com.example.voteapp.utils.EncryptionUtils;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -28,7 +29,7 @@ public class PollService {
             return true;
 
         } catch (Exception e) {
-            System.err.println("Błąd podczas zapisywania ankiety: " + e.getMessage());
+            System.err.println("Error saving poll: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -47,7 +48,7 @@ public class PollService {
             if (pollRs.next()) {
                 return pollRs.getInt(1);
             } else {
-                throw new SQLException("Nie udało się pobrać ID ankiety.");
+                throw new SQLException("Failed to retrieve poll ID.");
             }
         }
     }
@@ -69,7 +70,7 @@ public class PollService {
             if (questionRs.next()) {
                 return questionRs.getInt(1);
             } else {
-                throw new SQLException("Nie udało się pobrać ID pytania.");
+                throw new SQLException("Failed to retrieve question ID.");
             }
         }
     }
@@ -82,25 +83,61 @@ public class PollService {
         }
     }
 
+    public boolean hasEncryptedUserVoted(int pollId, String encryptedVoteId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM votes
+        WHERE poll_id = ?
+          AND encode(encrypted_vote_id, 'base64') = ?
+    """;
 
-    public boolean hasUserVoted(int pollId, int userId) {
-        String query = "SELECT COUNT(*) FROM votes WHERE poll_id = ? AND user_id = ?";
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+            statement.setInt(1, pollId);
+            statement.setString(2, encryptedVoteId);
 
-            stmt.setInt(1, pollId);
-            stmt.setInt(2, userId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         } catch (SQLException e) {
-            System.err.println("Błąd podczas sprawdzania głosu użytkownika: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error checking user vote: " + e.getMessage());
+        }
+
+        return false;
+    }
+
+
+
+    public boolean saveEncryptedUserVote(int pollId, String encryptedVoteId, int questionId, int selectedOptionId) {
+        String sql = """
+        INSERT INTO votes (poll_id, encrypted_vote_id, question_id, selected_option_id)
+        VALUES (?, decode(?, 'base64'), ?, ?)
+    """;
+
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, pollId);
+            statement.setString(2, encryptedVoteId);
+            statement.setInt(3, questionId);
+            statement.setInt(4, selectedOptionId);
+
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Error saving encrypted user vote: " + e.getMessage());
             return false;
         }
     }
+
+
+
+
+
     public boolean updatePoll(Poll poll) {
         String query = "UPDATE polls SET name = ?, start_date = ?, end_date = ?, voivodeship = ?, municipality = ? WHERE id = ?";
 
@@ -118,7 +155,7 @@ public class PollService {
             return rowsUpdated > 0;
 
         } catch (SQLException e) {
-            System.err.println("Błąd podczas aktualizacji ankiety: " + e.getMessage());
+            System.err.println("Error updating poll: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -154,30 +191,10 @@ public class PollService {
             return rowsDeleted > 0;
 
         } catch (SQLException e) {
-            System.err.println("Błąd podczas usuwania ankiety: " + e.getMessage());
+            System.err.println("Error deleting poll: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
-    }
-
-    public boolean togglePollStatus(Poll poll) {
-        String query = "UPDATE polls SET is_active = NOT is_active WHERE id = ?";
-
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setInt(1, poll.getId());
-            int rowsUpdated = stmt.executeUpdate();
-
-            if (rowsUpdated > 0) {
-                poll.setActive(!poll.isActive());
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("Błąd podczas zmiany statusu ankiety: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public List<Poll> getAllPolls() {
@@ -228,40 +245,6 @@ public class PollService {
         }
     }
 
-    private List<String> getOptionsForQuestion(int questionId, Connection conn) throws SQLException {
-        String optionQuery = "SELECT option_text FROM options WHERE question_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(optionQuery)) {
-            stmt.setInt(1, questionId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                List<String> options = new ArrayList<>();
-                while (rs.next()) {
-                    options.add(rs.getString("option_text"));
-                }
-                return options;
-            }
-        }
-    }
-
-    public int getOptionIdByText(int questionId, String optionText) {
-        String sql = "SELECT id FROM options WHERE question_id = ? AND option_text = ?";
-        try (Connection connection = DatabaseConnection.connect();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, questionId);
-            statement.setString(2, optionText);
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt("id");
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Błąd podczas pobierania ID opcji: " + e.getMessage());
-        }
-        return -1; // Zwraca -1, jeśli ID opcji nie zostanie znalezione
-    }
-
-
     public Map<String, Integer> getResultsForQuestion(int questionId) {
         String query = """
                 SELECT options.option_text, COUNT(votes.id) AS vote_count
@@ -284,30 +267,31 @@ public class PollService {
                 results.put(optionText, voteCount);
             }
         } catch (SQLException e) {
-            System.err.println("Błąd podczas pobierania wyników pytania: " + e.getMessage());
+            System.err.println("Error retrieving results for question: " + e.getMessage());
         }
 
         return results;
     }
 
-    public boolean saveUserVote(int pollId, int userId, int questionId, int selectedOptionId) {
-        String sql = "INSERT INTO votes (poll_id, user_id, question_id, selected_option_id) VALUES (?, ?, ?, ?)";
+    public int getOptionIdByText(int questionId, String optionText) {
+        String sql = "SELECT id FROM options WHERE question_id = ? AND option_text = ?";
         try (Connection connection = DatabaseConnection.connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setInt(1, pollId);
-            statement.setInt(2, userId);
-            statement.setInt(3, questionId);
-            statement.setInt(4, selectedOptionId);
+            statement.setInt(1, questionId);
+            statement.setString(2, optionText);
 
-            int rowsAffected = statement.executeUpdate();
-            return rowsAffected > 0;
-
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                }
+            }
         } catch (SQLException e) {
-            System.err.println("Błąd podczas zapisu głosu użytkownika: " + e.getMessage());
-            return false;
+            System.err.println("Error retrieving option ID: " + e.getMessage());
         }
+        return -1;
     }
+
     public List<String> getQuestionsForPoll(int pollId) {
         String query = "SELECT question_text FROM questions WHERE poll_id = ?";
         List<String> questions = new ArrayList<>();
@@ -348,6 +332,41 @@ public class PollService {
         return -1; // Zwraca -1, jeśli ID pytania nie zostanie znalezione
     }
 
+    private List<String> getOptionsForQuestion(int questionId, Connection conn) throws SQLException {
+        String optionQuery = "SELECT option_text FROM options WHERE question_id = ?";
+        List<String> options = new ArrayList<>();
 
+        try (PreparedStatement stmt = conn.prepareStatement(optionQuery)) {
+            stmt.setInt(1, questionId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    options.add(rs.getString("option_text"));
+                }
+            }
+        }
+
+        return options;
+    }
+
+    public boolean togglePollStatus(Poll poll) {
+        String query = "UPDATE polls SET is_active = NOT is_active WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, poll.getId());
+            int rowsUpdated = stmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                poll.setActive(!poll.isActive());
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas zmiany statusu ankiety: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 }

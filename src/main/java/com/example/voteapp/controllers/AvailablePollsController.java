@@ -144,12 +144,15 @@ public class AvailablePollsController {
             voteStage.setTitle("Głosowanie");
             voteStage.setScene(new Scene(root, 600, 400));
             voteStage.showAndWait();
-
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się otworzyć okna głosowania.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Błąd", "Wystąpił niespodziewany błąd.");
         }
     }
+
 
     private void openResultsPopup(Poll poll) {
         try {

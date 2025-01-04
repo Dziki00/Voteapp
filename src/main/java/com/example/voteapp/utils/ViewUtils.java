@@ -3,6 +3,8 @@ package com.example.voteapp.utils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -54,6 +56,16 @@ public class ViewUtils {
         stage.setHeight(HEIGHT);
         stage.setResizable(false);
         stage.show();
+    }
+
+    public static void setLogo(ImageView imageView, String logoPath) {
+        try {
+            Image logo = new Image(ViewUtils.class.getResourceAsStream(logoPath));
+            imageView.setImage(logo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Nie można załadować logo: " + logoPath);
+        }
     }
 
     @FunctionalInterface

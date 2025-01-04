@@ -1,6 +1,7 @@
 package com.example.voteapp.model;
 
 import com.example.voteapp.utils.DatabaseConnection;
+import com.example.voteapp.utils.EncryptionUtils;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import java.sql.Connection;
@@ -97,5 +98,26 @@ public class UserService {
             e.printStackTrace();
         }
         return null; // Zwraca null, jeśli użytkownik nie istnieje lub hasło jest nieprawidłowe
+    }
+
+    // Metoda generowania zaszyfrowanego identyfikatora głosu
+    public String generateEncryptedVoteId(int userId, int pollId) {
+        try {
+            String input = userId + "-" + pollId + "-" + System.currentTimeMillis();
+            return EncryptionUtils.encrypt(input);
+        } catch (Exception e) {
+            System.err.println("Błąd podczas generowania zaszyfrowanego identyfikatora głosu: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Metoda deszyfrowania identyfikatora głosu (opcjonalna)
+    public String decryptVoteId(String encryptedVoteId) {
+        try {
+            return EncryptionUtils.decrypt(encryptedVoteId);
+        } catch (Exception e) {
+            System.err.println("Błąd podczas deszyfrowania identyfikatora głosu: " + e.getMessage());
+            return null;
+        }
     }
 }
