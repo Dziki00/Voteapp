@@ -83,19 +83,14 @@ public class PollService {
         }
     }
 
-    public boolean hasEncryptedUserVoted(int pollId, String encryptedVoteId) {
-        String sql = """
-        SELECT COUNT(*)
-        FROM votes
-        WHERE poll_id = ?
-          AND encode(encrypted_vote_id, 'base64') = ?
-    """;
+    public boolean hasUserVoted(int pollId, String userHash) {
+        String sql = "SELECT COUNT(*) FROM votes WHERE poll_id = ? AND user_hash = ?";
 
         try (Connection connection = DatabaseConnection.connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, pollId);
-            statement.setString(2, encryptedVoteId);
+            statement.setString(2, userHash);
 
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
@@ -103,7 +98,7 @@ public class PollService {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error checking user vote: " + e.getMessage());
+            System.err.println("Error checking if user voted: " + e.getMessage());
         }
 
         return false;
@@ -111,17 +106,15 @@ public class PollService {
 
 
 
-    public boolean saveEncryptedUserVote(int pollId, String encryptedVoteId, int questionId, int selectedOptionId) {
-        String sql = """
-        INSERT INTO votes (poll_id, encrypted_vote_id, question_id, selected_option_id)
-        VALUES (?, decode(?, 'base64'), ?, ?)
-    """;
+
+    public boolean saveVote(int pollId, String userHash, int questionId, int selectedOptionId) {
+        String sql = "INSERT INTO votes (poll_id, user_hash, question_id, selected_option_id) VALUES (?, ?, ?, ?)";
 
         try (Connection connection = DatabaseConnection.connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, pollId);
-            statement.setString(2, encryptedVoteId);
+            statement.setString(2, userHash);
             statement.setInt(3, questionId);
             statement.setInt(4, selectedOptionId);
 
@@ -129,14 +122,11 @@ public class PollService {
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            System.err.println("Error saving encrypted user vote: " + e.getMessage());
-            return false;
+            System.err.println("Error saving vote: " + e.getMessage());
         }
+
+        return false;
     }
-
-
-
-
 
     public boolean updatePoll(Poll poll) {
         String query = "UPDATE polls SET name = ?, start_date = ?, end_date = ?, voivodeship = ?, municipality = ? WHERE id = ?";

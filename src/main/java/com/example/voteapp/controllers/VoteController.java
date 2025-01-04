@@ -4,6 +4,7 @@ import com.example.voteapp.model.Poll;
 import com.example.voteapp.model.PollService;
 import com.example.voteapp.model.Question;
 import com.example.voteapp.utils.EncryptionUtils;
+import com.example.voteapp.utils.HashUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -27,17 +28,21 @@ public class VoteController {
     private final Map<Question, String> selectedOptions = new HashMap<>();
     private final PollService pollService = new PollService();
     private String encryptedVoteId;
+    private int userId;
+
 
     public void setPoll(Poll poll, int userId) throws Exception {
         this.poll = poll;
-        // Encrypt the user ID to create an anonymous vote identifier
-        this.encryptedVoteId = EncryptionUtils.encrypt(String.valueOf(userId));
+        this.userId = userId; // Przechowuje userId
+        String userHash = HashUtils.hash(String.valueOf(userId)); // Generuje hash użytkownika
         pollNameLabel.setText("Głosowanie: " + poll.getName());
         checkIfUserCanVote();
     }
 
+
     private void checkIfUserCanVote() {
-        boolean hasVoted = pollService.hasEncryptedUserVoted(poll.getId(), encryptedVoteId);
+        String userHash = HashUtils.hash(String.valueOf(userId));
+        boolean hasVoted = pollService.hasUserVoted(poll.getId(), userHash);
 
         if (hasVoted) {
             disableVoting("Już zagłosowałeś w tej ankiecie.");
@@ -47,6 +52,7 @@ public class VoteController {
             loadQuestions();
         }
     }
+
 
     private void disableVoting(String message) {
         submitVoteButton.setDisable(true);
@@ -87,7 +93,6 @@ public class VoteController {
 
     @FXML
     private void submitVote() {
-        System.out.println("Rozpoczęcie zapisu głosów...");
         if (validateSelections()) {
             boolean allVotesSaved = saveVoteToDatabase();
             if (allVotesSaved) {
@@ -97,9 +102,7 @@ public class VoteController {
                 showAlert(Alert.AlertType.ERROR, "Błąd", "Wystąpił błąd podczas zapisywania odpowiedzi.");
             }
         }
-        System.out.println("Zakończenie zapisu głosów.");
     }
-
 
     private boolean validateSelections() {
         for (Question question : poll.getQuestions()) {
@@ -113,12 +116,12 @@ public class VoteController {
 
     private boolean saveVoteToDatabase() {
         boolean allVotesSaved = true;
+        String userHash = HashUtils.hash(String.valueOf(userId));
 
         for (Map.Entry<Question, String> entry : selectedOptions.entrySet()) {
             Question question = entry.getKey();
             String selectedOption = entry.getValue();
 
-            // Pobierz identyfikator opcji na podstawie tekstu
             int selectedOptionId = pollService.getOptionIdByText(question.getId(), selectedOption);
             if (selectedOptionId == -1) {
                 showAlert(Alert.AlertType.ERROR, "Błąd", "Nieprawidłowa opcja: " + selectedOption);
@@ -126,8 +129,7 @@ public class VoteController {
                 continue;
             }
 
-            // Save the vote using the encrypted identifier
-            boolean success = pollService.saveEncryptedUserVote(poll.getId(), encryptedVoteId, question.getId(), selectedOptionId);
+            boolean success = pollService.saveVote(poll.getId(), userHash, question.getId(), selectedOptionId);
             if (!success) {
                 allVotesSaved = false;
                 showAlert(Alert.AlertType.ERROR, "Błąd", "Wystąpił błąd podczas zapisu głosu dla pytania: " + question.getQuestionText());
@@ -140,6 +142,7 @@ public class VoteController {
 
         return allVotesSaved;
     }
+
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
